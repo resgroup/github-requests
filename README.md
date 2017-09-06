@@ -55,6 +55,7 @@ Define all the above variables as application settings on your azure web app.
 Then, you can deploy new versions of the app using azure's git deployment option for example. 
 Azure will automatically install the relevant npm dependencies, build the front end code, and start the node server.
 
+
 **Note**: deployments are currently relatively slow, especially the first time since the `npm install` step needs to fetch all the packages. This is a known issue.
 
 If you want to enable email notifications, you will need to setup a web hook on github to send issue related events to the 
