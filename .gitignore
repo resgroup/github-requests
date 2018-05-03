@@ -9,3 +9,4 @@ typings
 npm-debug*
 app_data
 appservicecertificate.pfx
+projects.json
