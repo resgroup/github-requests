@@ -1,17 +1,12 @@
 const config = require('../../config');
 const request = require('request');
-const { getProxyRequestOptions, genericErrorHandler } = require( '../gitHubProxyHelpers');
+const { getProxyRequestOptions, genericErrorHandler, rewriteResponseHeaders } = require( '../gitHubProxyHelpers');
 const validateRepository = require( '../configHelpers');
 
 const authenticatedRouter = require('./authenticatedRouter');
 
-authenticatedRouter.get('/repos/:organisation/:repo/issues', function(req, res) {
+function githubProxyRequest (req, res) {
   console.log('Request App received request to: ', req.url);
-
-  if (!validateRepository(req.params.organisation, req.params.repo, config.appData.projects))
-    res.status(403).send({ error: 'Invalid repository name' });
-
-  console.log(`Request App: Listing issues on repository ${req.params.organisation}/${req.params.repo}`);
 
   const gitHubRequest = request(getProxyRequestOptions(req.url)); // add the authorization that github wants
   
@@ -19,8 +14,15 @@ authenticatedRouter.get('/repos/:organisation/:repo/issues', function(req, res) 
   
   req
   .pipe(gitHubRequest, genericErrorHandler) // send to git hub
-  .pipe(res); // pipe response from github back to response from this route / function
-});
+  .on('response', response => rewriteResponseHeaders(req, response)) // response from github, monkey with the headers for some reason. Looking at the logs it doesn't seem to do anything
+  .pipe(res, genericErrorHandler); // pipe response from github back to response from this route / function
+
+  console.log('Request App: Finished proxying request to: ', getProxyRequestOptions(req.url).url);
+}
+
+authenticatedRouter.get('/repositories/*/issues', githubProxyRequest);
+
+authenticatedRouter.get('/repos/:organisation/:repo/issues', githubProxyRequest);
 
 authenticatedRouter.post('/repos/:organisation/:repo/issues', function(req, res) {
   if (!validateRepository(req.params.organisation, req.params.repo, config.appData.projects))
