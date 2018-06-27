@@ -3,6 +3,18 @@ This project's goal is to enable teams to collect user feedback and organise wor
 
 It enables non github members to raise issues via a bot account, and github members to aggregates and track issues across different repositories.
 
+# Before you read anything else: How to deploy a new version to azure
+
+Once you have a new version to deploy, check the deploy.cmd runs without failing on your dev machine. Then, push to the master branch on the azure git repo. The repo is currently here:
+
+https://res-github-requests.scm.azurewebsites.net:443/res-github-requests.git
+
+You will need to add this as a remote (called azure for example), then you can push the revision that you wish to deploy, push to azure/master.
+
+You can push to this repo using the azure auto-generated application credentials, the username is $res-github-requests, you can recover the password from the azure portal Deployment Center (Preview) panel, click on Deployment Credentials.
+
+Pushing to azure causes the Deploy.cmd script to be executed. This installs the node dependencies and compiles the static client files (javascript). It takes about an hour to complete, which seems excessively long.
+
 # Setup
 ## Create Oauth applications in Azure and Github
 The app uses Azure Active Directory to authenticate users, and unlocks more functionalities for administators with a github account.
