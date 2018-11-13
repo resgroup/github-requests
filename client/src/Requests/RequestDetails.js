@@ -27,8 +27,8 @@ class RequestDetails extends React.Component {
       isLoading: true
     });
     return ghClient.gh
-      .getIssues(this.props.match.params.organisation, this.props.match.params.repo)
-      .listIssueComments(parseInt(this.props.match.params.issueNumber, 10))
+      .getIssues(this.props.project.organisation, this.props.project.repository)
+      .listIssueComments(this.props.issue.issueNumber)
       .then(response => {
         this.setState({
           comments: response.data,
@@ -40,9 +40,9 @@ class RequestDetails extends React.Component {
 
   submitNewComment() {
     return ghClient.gh
-      .getIssues(this.props.match.params.organisation, this.props.match.params.repo)
+      .getIssues(this.props.project.organisation, this.props.project.repository)
       .createIssueComment(
-        parseInt(this.props.match.params.issueNumber, 10),
+        this.props.issue.issueNumber,
         this.props.isAdmin ? this.state.newComment : quoteRequestBody(this.state.newComment, this.props.userProfile)
       );
   }

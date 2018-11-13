@@ -24,23 +24,22 @@ class Requests extends React.Component {
   }
 
   componentDidMount() {
-    const { params } = this.props.match;
     const labels = ['user request'];
-    if (params.label !== params.repo) {
-      labels.push(params.label);
+    if (this.props.project.label !== this.props.project.repository) {
+      labels.push(this.props.project.label);
     }
 
     if (this.props.project && !_.isEmpty(this.props.project)) {
-      this.getIssues({ labels: labels.join(), state: 'all' });
+      this.getIssues({ labels: labels.join(), state: 'all' }, this.props.project.organisation, this.props.project.repository);
     }
   }
 
-  getIssues(issueOptions) {
+  getIssues(issueOptions, organisation, repository) {
     this.setState({
       isLoading: true
     });
     return ghClient.gh
-      .getIssues(this.props.match.params.organisation, this.props.match.params.repo)
+      .getIssues(organisation, repository)
       .listIssues(issueOptions)
       .then(response => {
         this.setState({
@@ -65,50 +64,34 @@ class Requests extends React.Component {
   }
 
   render() {
-    const { match: { path, params }, ...rest } = this.props;
-
-    if (rest.project && _.isEmpty(rest.project)) {
+    if (this.props.project && _.isEmpty(this.props.project)) {
       //url parameters did not match the list of configured projects.
-      return <Redirect to="/requests" />;
+      return (<Redirect to="/requests" />);
     }
 
-    const newRequestButton = params &&
-      (!params.issueNumber || params.issueNumber !== 'new') &&
-      <Button
-        onClick={() => this.props.history.push(`/requests/${params.organisation}/${params.repo}/${params.label}/new`)}
+    const newRequestButton = this.props.issueNumber !== 'new' &&
+      (<Button
+        onClick={() => this.props.history.push(`/requests/${this.props.project.organisation}/${this.props.project.repository}/${this.props.project.label}/new`)}
         bsStyle="default"
         bsSize="large"
       >
         New Request
-      </Button>;
+      </Button>);
 
     return (
       <Grid>
         <div>
           <PageHeader>
-            <Route
-              path={`/requests/:organisation/:repo/:label/:issueNumber`}
-              exact
-              render={({ match: { params } }) => (
-                <Link to={`/requests/${params.organisation}/${params.repo}/${params.label}`}>
-                  <small className="back-link-container"><i className="fa fa-chevron-circle-left" /></small>
-                </Link>
-              )}
-            />
-            <Route
-              path={`/requests/:organisation/:repo/:label`}
-              exact
-              render={() => (
-                <Link to="/requests"><small className="back-link-container"><i className="fa fa-chevron-circle-left" /></small></Link>
-              )}
-            />
+            <Link to={this.props.issueNumber ? `/requests` : `/requests/${this.props.project.organisation}/${this.props.project.repository}/${this.props.project.label}`}>
+              <small className="back-link-container"><i className="fa fa-chevron-circle-left" /></small>
+            </Link>
             {this.props.project.name}
             <span className="pull-right">
               {' '}
               {newRequestButton}
               {' '}
               {rest.isAdmin &&
-                <a href={`http://github.com/${params.organisation}/${params.repo}/issues`} target="_blank">
+                <a href={`http://github.com/${this.props.project.organisation}/${this.props.project.repository}/issues`} target="_blank">
                   <i className="fa fa-github fa-lg" />
                 </a>}
               {' '}
@@ -117,54 +100,31 @@ class Requests extends React.Component {
         </div>
         {this.state.isLoading
           ? <Loading />
-          : <Switch>
-              <Route
-                path={`/requests/:organisation/:repo/:label/:issueNumber`}
-                exact
-                render={matchProps => (
-                  <Switch>
-                    <Route
-                      path={`${path}/new`}
-                      exact
-                      render={childProps => (
-                        <NewRequest
-                          {...matchProps}
-                          isAdmin={rest.isAdmin}
-                          userProfile={rest.userProfile}
-                          project={rest.project}
-                          onIssueCreated={this.handleNewIssue}
-                        />
-                      )}
-                    />
-                    <Route
-                      render={() => (
-                        <RequestDetails
-                          {...matchProps}
-                          isAdmin={rest.isAdmin}
-                          userProfile={rest.userProfile}
-                          project={rest.project}
-                          issue={this.findIssue(matchProps.match.params.issueNumber)}
-                        />
-                      )}
-                    />
-                  </Switch>
-                )}
-              />
-              <Route
-                render={() => (
-                  <RequestList
-                    {...this.props}
-                    isAdmin={rest.isAdmin}
-                    userProfile={rest.userProfile}
-                    project={rest.project}
-                    issues={this.state.issues.filter(i => i.state === issueVisibilityText(this.state.showOpen))}
-                    shown={issueVisibilityText(this.state.showOpen)}
-                    hidden={issueVisibilityText(!this.state.showOpen)}
-                    onVisibilityToggle={this.toggleShowOpen}
-                  />
-                )}
-              />
-            </Switch>}
+          : this.props.issueNumber === 'new' ?
+              <NewRequest
+              isAdmin={this.props.isAdmin}
+              userProfile={this.props.userProfile}
+              project={this.props.project}
+              onIssueCreated={this.handleNewIssue}
+              /> : this.props.issueNumber ?
+                <RequestDetails
+                  isAdmin={this.props.isAdmin}
+                  userProfile={this.props.userProfile}
+                  project={this.props.project}
+                  issue={this.findIssue(this.props.issueNumber)}
+                /> :
+                <RequestList
+                  organisation={this.props.organisation}
+                  repo={this.props.repo}
+                  label={this.props.label}
+                  isAdmin={this.props.isAdmin}
+                  userProfile={this.props.userProfile}
+                  project={this.props.project}
+                  issues={this.state.issues.filter(i => i.state === issueVisibilityText(this.state.showOpen))}
+                  shown={issueVisibilityText(this.state.showOpen)}
+                  hidden={issueVisibilityText(!this.state.showOpen)}
+                  onVisibilityToggle={this.toggleShowOpen}
+                />}
       </Grid>
     );
   }
@@ -194,7 +154,7 @@ const RequestList = props => {
       {props.issues && props.issues.length > 0
         ? <ListGroup fill>
             {props.issues.map(i => (
-              <Link key={i.number} to={`${props.location.pathname}/${i.number}`} className="list-group-item">
+              <Link key={i.number} to={`/requests/${this.props.project.organisation}/${this.props.project.repository}/${this.props.project.label}/${i.number}`} className="list-group-item">
                 <IssueInfo issue={i} />
               </Link>
             ))}

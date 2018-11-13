@@ -27,7 +27,7 @@ class NewRequestComment extends React.Component {
             />
             <HelpBlock className="pull-right">
               You can format your comment using{' '}
-              <a target="_blank" href="https://guides.github.com/features/mastering-markdown/">Markdown</a>
+              <a target="_blank" rel="noopener noreferrer" href="https://guides.github.com/features/mastering-markdown/">Markdown</a>
               {' '}syntax
             </HelpBlock>
           </FormGroup>

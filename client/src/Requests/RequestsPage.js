@@ -4,22 +4,23 @@ import { Grid, PageHeader, ListGroup, Panel } from 'react-bootstrap';
 import { Route, Switch, Link } from 'react-router-dom';
 import Requests from './Requests';
 
-const findProject = (projects, params) => {
-  return _.find(projects, p => p.organisation === params.organisation && p.repository === params.repo && p.label === params.label) || {};
+const findProject = (projects, organisation, repo, label) => {
+  return _.find(projects, p => p.organisation === organisation && 
+                          p.repository === repo && 
+                          (p.label === label || p.label.replace(" ", "+") === label)) || {};
 };
 
 const RequestsPage = ({ match, ...rest }) => rest.projects.length > 0 &&
   <div>
     <Switch>
       <Route
-        path={`${match.path}/:organisation/:repo/:label`}
+        path={`${match.path}/:organisation/:repo/:label/:issueNumber`}
         render={props => (
           <Requests
-            key={`${match.path}/:organisation/:repo/:label`}
-            {...props}
+            issueNumber={props.match.params.issueNumber}
             isAdmin={rest.isAdmin}
             userProfile={rest.userProfile}
-            project={findProject(rest.projects, props.match.params)}
+            project={findProject(rest.projects, props.match.params.organisation, props.match.params.repo, props.match.params.label)}
           />
         )}
       />

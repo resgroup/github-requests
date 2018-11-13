@@ -16,7 +16,7 @@ export default class AdminConsent extends React.Component {
     if (this.props.location.query && this.props.location.query.force_consent_prompt !== undefined)
       content = (
         <p>
-          <a href="#" onClick={() => azureClient.grantAdminPermissions(this.props.location)}>
+          <a tabIndex="0" onClick={() => azureClient.grantAdminPermissions(this.props.location)}>
             follow this link to trigger the consent flow again
           </a>
         </p>
@@ -41,7 +41,7 @@ export default class AdminConsent extends React.Component {
       <p>
         This application expose more features to users from a pre-configured Active Directory group. However, checking group membership
         requires a one time approval form a directory administrator. If you are an administrator, please{' '}
-        <a href="#" onClick={() => azureClient.grantAdminPermissions(this.props.location)}>follow this link to enable those features</a>
+        <a tabIndex="0" onClick={() => azureClient.grantAdminPermissions(this.props.location)}>follow this link to enable those features</a>
         .
       </p>;
 

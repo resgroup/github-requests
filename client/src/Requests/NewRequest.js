@@ -31,8 +31,8 @@ class NewRequest extends React.Component {
     this.setState({ submissionInProgress: true });
 
     const labels = ['user request', this.state.type];
-    if (this.props.match.params.label !== this.props.match.params.repo) {
-      labels.push(this.props.match.params.label);
+    if (this.props.project.label !== this.props.project.repo) {
+      labels.push(this.props.project.label);
     }
 
     const issueData = {
@@ -41,13 +41,13 @@ class NewRequest extends React.Component {
       labels
     };
 
-    const issue = ghClient.gh.getIssues(this.props.match.params.organisation, this.props.match.params.repo);
+    const issue = ghClient.gh.getIssues(this.props.project.organisation, this.props.project.repository);
 
     issue
       .createIssue(issueData)
       .then(response => {
         this.context.router.history.push(
-          `/requests/${this.props.match.params.organisation}/${this.props.match.params.repo}/${this.props.match.params.label}`
+          `/requests/${this.props.project.organisation}/${this.props.project.repository}/${this.props.project.label}`
         );
         this.props.onIssueCreated(response.data);
       })
@@ -82,7 +82,7 @@ class NewRequest extends React.Component {
           />
           <HelpBlock className="pull-right">
             You can format your request using{' '}
-            <a target="_blank" href="https://guides.github.com/features/mastering-markdown/">Markdown</a>
+            <a target="_blank" rel="noopener noreferrer" href="https://guides.github.com/features/mastering-markdown/">Markdown</a>
             {' '}syntax
           </HelpBlock>
         </FormGroup>
